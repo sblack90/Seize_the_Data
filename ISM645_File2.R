@@ -18,7 +18,8 @@ str(house_series_data)
 # Cleaning the data and selecting the relevant variables
 
 hsd_2 <- house_series_data %>% 
-  mutate(target_price=(`Median.House.Price.(1.Bedroom)`+`Median.House.Price.(2.Bedrooms)`+`Median.House.Price.(3.Bedrooms)`+ `Median.House.Price.(4.Bedrooms)`+`Median.House.Price.(5+.Bedrooms)`)/5)
+  mutate(target_price=(`Median_House_Price_1`+`Median_House_Price_2`+`Median_House_Price_3`+ `Median_House_Price_4`+`Median_House_Price_5`)/5, Mort_15_Year=as.numeric(Mort_15_Year)) %>%
+  select(CPI,BitCoin,Unemployment,GDP_Billions,Population,Mort_15_Year,Mort_30_Year,Crime,Nasdaq,Dow,target_price)
 
 str(hsd_2)
 
@@ -39,5 +40,7 @@ str(hsd_test)
 ######Need to mutate variables to add lag?
 
 #Build Linear Regression Model
-price_prediction1 <- lm(target_price ~ Unemployment 15.Year + 30.Year + Crime.by.Month.(Don) + Nasdaq + Dow, 
-                        data = hsd_train)
+price_prediction1 <- lm(target_price ~ . - target_price, data = hsd_train)
+
+summary(price_prediction1)
+                       
