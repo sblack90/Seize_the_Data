@@ -6,6 +6,9 @@ library(ggplot2)
 library(tidyr)
 library(openxlsx)
 library(reshape)
+library(yardstick)
+library(rpart)
+library(rpart.plot)
 
 # Importing the raw data from xlsx file
 house_series_data <- read.xlsx("PA Data Merge.xlsx")
@@ -67,7 +70,11 @@ price_prediction7 <- lm(price_change ~ .  - price_change - Year, data = hsd_trai
 summary(price_prediction7)
 
 #Test Model
-##HERE
+##HERE, started, RMSE very small
+price_pred_test <- hsd_test %>% 
+  mutate(predicted_price_lin =predict(price_prediction7, newdata=hsd_test))
+
+rmse(price_pred_test, price_change, predicted_price_lin)
 
 ###### LOGISTIC REGRESSION ##########
 
@@ -119,4 +126,19 @@ summary(log_price7)
 
 ###### REGRESSION TREE MODEL ##########
 
+#Regression Tree
+price_rtree <- rpart(price_change  ~ .  - price_change - Year, data=hsd_train, method="anova")
+rpart.plot(price_rtree, cex=0.8)
+
+#Test Model
+##HERE
+
+#Classification Tree
+price_ctree <- rpart(change_type  ~ . -change_type - price_change - Year, data=hsd_train2, method="class")
+rpart.plot(price_ctree, cex=0.8)
+
+#Test Model
+##HERE
+
 ###### RANDOM FOREST MODEL ##########
+
