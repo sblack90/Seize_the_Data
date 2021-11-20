@@ -6,6 +6,9 @@ library(ggplot2)
 library(tidyr)
 library(openxlsx)
 library(reshape)
+library(yardstick)
+library(rpart)
+library(rpart.plot)
 
 # Importing the raw data from xlsx file
 house_series_data <- read.xlsx("PA Data Merge.xlsx")
@@ -15,13 +18,55 @@ house_series_data <- read.xlsx("PA Data Merge.xlsx")
 # Exploring the variables of the raw data
 str(house_series_data)
 
-# Cleaning the data and selecting the relevant variables
+# Review variables
 
+ggplot(data=house_series_data, aes(x=Year, y=CPI)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=BitCoin)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=Unemployment)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=GDP_Billions)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=Population)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=Mort_15_Year)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=Mort_30_Year)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=Crime)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=Nasdaq)) +
+  geom_point()
+
+ggplot(data=house_series_data, aes(x=Year, y=Dow)) +
+  geom_point()
+
+
+##Weird issue where log(BitCoin) gave me negatives, so I set it at 0 as the lowest
 hsd_2 <- house_series_data %>% 
   mutate(median_price=(`Median_House_Price_1`+`Median_House_Price_2`+`Median_House_Price_3`+ `Median_House_Price_4`+`Median_House_Price_5`)/5, Mort_15_Year=as.numeric(Mort_15_Year)) %>%
-  mutate(price_change=(lead(median_price)/median_price-1)) %>% 
-  select(Year,CPI,BitCoin,Unemployment,GDP_Billions,Population,Mort_15_Year,Mort_30_Year,Crime,Nasdaq,Dow,price_change)
+  mutate(price_change=100*(lead(median_price)/median_price-1)) %>% 
+  mutate(BitCoin=if_else(log(BitCoin)>0, log(BitCoin), 0)) %>% 
+  
+##Select 15 or 30 Year Mortgage
+Mort_15 <- lm(price_change ~ Mort_15_Year, data=hsd_2)
+Mort_30 <- lm(price_change ~ Mort_30_Year, data=hsd_2)
+summary(Mort_15)
+summary(Mort_30)
 
+hsd_2 <- hsd_2 %>% 
+  select(Year,CPI,BitCoin,Unemployment,GDP_Billions,Population,Mort_30_Year,Crime,Nasdaq,Dow,price_change)
+
+##CHECK THAT PRICE CHANGE IS WHAT WE EXPECT
 str(hsd_2)
 summary(hsd_2)
 
@@ -48,26 +93,33 @@ price_prediction1 <- lm(price_change ~ . - price_change - Year, data = hsd_train
 summary(price_prediction1)
 
 #Remove least significant variables
-price_prediction2 <- lm(price_change ~ . - price_change - Year, data = hsd_train)
+price_prediction2 <- lm(price_change ~ . -GDP_Billions - price_change - Year, data = hsd_train)
 summary(price_prediction2)
 
-price_prediction3 <- lm(price_change ~ . - price_change - Year, data = hsd_train)
+price_prediction3 <- lm(price_change ~ . -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
 summary(price_prediction3)
 
-price_prediction4 <- lm(price_change ~ .  - price_change - Year, data = hsd_train)
+price_prediction4 <- lm(price_change ~ .  -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
 summary(price_prediction4)
 
-price_prediction5 <- lm(price_change ~ .  - price_change - Year, data = hsd_train)
+price_prediction5 <- lm(price_change ~ .  -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
 summary(price_prediction5)
 
-price_prediction6 <- lm(price_change ~ .  - price_change - Year, data = hsd_train)
+price_prediction6 <- lm(price_change ~ .  -Nasdaq -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
 summary(price_prediction6)
 
-price_prediction7 <- lm(price_change ~ .  - price_change - Year, data = hsd_train)
+price_prediction7 <- lm(price_change ~ .  -Crime -Nasdaq -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
 summary(price_prediction7)
 
+price_prediction8 <- lm(price_change ~ .  -CPI -Crime -Nasdaq -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
+summary(price_prediction8)
+
 #Test Model
-##HERE
+##HERE, started, RMSE very small
+price_pred_test <- hsd_test %>% 
+  mutate(predicted_price_lin =predict(price_prediction8, newdata=hsd_test))
+
+rmse(price_pred_test, price_change, predicted_price_lin)
 
 ###### LOGISTIC REGRESSION ##########
 
@@ -119,4 +171,19 @@ summary(log_price7)
 
 ###### REGRESSION TREE MODEL ##########
 
+#Regression Tree
+price_rtree <- rpart(price_change  ~ .  - price_change - Year, data=hsd_train, method="anova")
+rpart.plot(price_rtree, cex=0.8)
+
+#Test Model
+##HERE
+
+#Classification Tree
+price_ctree <- rpart(change_type  ~ . -change_type - price_change - Year, data=hsd_train2, method="class")
+rpart.plot(price_ctree, cex=0.8)
+
+#Test Model
+##HERE
+
 ###### RANDOM FOREST MODEL ##########
+
