@@ -1,9 +1,3 @@
-#Hello!! This is Sarah!!
-
-## Hello this is Don !!
-
-##Code from August below
-
 
 library(ggrepel)
 library(dplyr) 
