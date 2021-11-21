@@ -117,7 +117,11 @@ summary(price_prediction8)
 #Test Model
 ##HERE, started, RMSE very small
 price_pred_test <- hsd_test %>% 
+<<<<<<< HEAD
   mutate(predicted_price_lin =predict(price_prediction8, newdata=hsd_test))
+=======
+  mutate(predicted_price_lin =predict(price_prediction7, newdata=hsd_test))
+>>>>>>> 5d6d883b7a02348fd6a0287124255f74bf082d30
 
 rmse(price_pred_test, price_change, predicted_price_lin)
 
