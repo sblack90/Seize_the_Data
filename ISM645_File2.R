@@ -151,23 +151,28 @@ summary(log_price1)
 log_price2 <- glm(change_type ~ . -Crime -change_type - price_change - Year, data=hsd_train2)
 summary(log_price2)
 
-log_price3 <- glm(change_type ~ . -CPI -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price3 <- glm(change_type ~ . -BitCoin -Crime -change_type - price_change - Year, data=hsd_train2)
 summary(log_price3)
 
-log_price4 <- glm(change_type ~ . -BitCoin -CPI -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price4 <- glm(change_type ~ . -CPI -BitCoin -Crime -change_type - price_change - Year, data=hsd_train2)
 summary(log_price4)
 
-log_price5 <- glm(change_type ~ . -Mort_30_Year -BitCoin -CPI -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price5 <- glm(change_type ~ . -Dow -CPI -BitCoin -Crime -change_type - price_change - Year, data=hsd_train2)
 summary(log_price5)
 
-log_price6 <- glm(change_type ~ . -Dow -Mort_30_Year -BitCoin -CPI -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price6 <- glm(change_type ~ . -Nasdaq -Dow -CPI -BitCoin -Crime -change_type - price_change - Year, data=hsd_train2)
 summary(log_price6)
 
-log_price7 <- glm(change_type ~ . -Nasdaq -Dow -Mort_30_Year -BitCoin -CPI -Crime -change_type - price_change - Year, data=hsd_train2)
-summary(log_price7)
 
 #Test Model
-##HERE
+##GOT A WEIRD ERROR, STILL REVIEWING
+hsd_test2 <- hsd_test2 %>%
+  mutate(predict_change_type=predict(log_price6, newdata = hsd_test2, type = "response"))
+
+roc <- roc(hsd_test2, x= predict_change_type, class = change_type, pos_class = 1, neg_class = 0)
+
+plot(roc)
+auc(roc)
 
 ###### REGRESSION TREE MODEL ##########
 
