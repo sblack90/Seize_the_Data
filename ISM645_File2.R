@@ -66,13 +66,10 @@ summary(Mort_30)
 hsd_2 <- hsd_2 %>% 
   select(Year,CPI,BitCoin,Unemployment,GDP_Billions,Population,Mort_30_Year,Crime,Nasdaq,Dow,price_change)
 
-##CHECK THAT PRICE CHANGE IS WHAT WE EXPECT
 str(hsd_2)
 summary(hsd_2)
 
 ###### LINEAR REGRESSION ##########
-
-##TASK - ADD IN TEST (RMSE)
 
 #Train on older data (2010-2020)
 hsd_train <- hsd_2 %>% 
@@ -163,7 +160,8 @@ summary(log_price6)
 
 
 #Test Model
-##GOT A WEIRD ERROR, STILL REVIEWING
+##GOT A WEIRD ERROR, STILL REVIEWING 
+##KC will work on this
 hsd_test2 <- hsd_test2 %>%
   mutate(predict_change_type=predict(log_price6, newdata = hsd_test2, type = "response"))
 
