@@ -18,7 +18,7 @@ house_series_data <- read.xlsx("PA Data Merge.xlsx")
 # Exploring the variables of the raw data
 str(house_series_data)
 
-# Review variables
+# Review Variables vs Year
 
 ggplot(data=house_series_data, aes(x=Year, y=CPI)) +
   geom_point()
@@ -55,7 +55,7 @@ ggplot(data=house_series_data, aes(x=Year, y=Dow)) +
 hsd_2 <- house_series_data %>% 
   mutate(median_price=(`Median_House_Price_1`+`Median_House_Price_2`+`Median_House_Price_3`+ `Median_House_Price_4`+`Median_House_Price_5`)/5, Mort_15_Year=as.numeric(Mort_15_Year)) %>%
   mutate(price_change=100*(lead(median_price)/median_price-1)) %>% 
-  mutate(BitCoin=if_else(log(BitCoin)>0, log(BitCoin), 0)) %>% 
+  mutate(BitCoin=if_else(log(BitCoin)>0, log(BitCoin), 0))  
   
 ##Select 15 or 30 Year Mortgage
 Mort_15 <- lm(price_change ~ Mort_15_Year, data=hsd_2)
@@ -122,8 +122,6 @@ price_pred_test <- hsd_test %>%
 rmse(price_pred_test, price_change, predicted_price_lin)
 
 ###### LOGISTIC REGRESSION ##########
-
-##TASK: ADD IN ROC AND AUC
 
 #Create Binary Variable (1 for increase in price, 0 for decrease)
 hsd_3 <- hsd_2 %>% 
