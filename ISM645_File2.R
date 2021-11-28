@@ -186,6 +186,18 @@ plot(roc) +
 price_rtree <- rpart(price_change  ~ .  - price_change - Year, data=hsd_train, method="anova")
 rpart.plot(price_rtree, cex=0.8)
 
+#Prune
+##SARAH HERE
+hsd_train_over <- ovun.sample(price_change  ~ .  - price_change - Year, data = hsd_train, method="over", p = 0.5)$data
+
+table(hsd_train$price_change)
+table(hsd_train_over$price_change)
+
+
+grade_dtree_over <- rpart(pass ~ . - final_grade, data = grade_train_over, method = "class")
+
+rpart.plot(grade_dtree_over, cex=0.8)
+
 #Test Model
 ##HERE
 
