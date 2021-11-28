@@ -11,6 +11,9 @@ library(rpart)
 library(rpart.plot)
 library(cutpointr)
 library(caret)
+library(ROSE)
+
+set.seed(645)
 
 
 # Importing the raw data from xlsx file
@@ -115,7 +118,6 @@ price_prediction8 <- lm(price_change ~ .  -CPI -Crime -Nasdaq -Dow -BitCoin -Une
 summary(price_prediction8)
 
 #Test Model
-##HERE, started, RMSE very small
 price_pred_test <- hsd_test %>% 
   mutate(predicted_price_lin =predict(price_prediction8, newdata=hsd_test))
 
@@ -186,6 +188,7 @@ rpart.plot(price_rtree, cex=0.8)
 
 #Test Model
 ##HERE
+
 
 #Classification Tree
 price_ctree <- rpart(change_type  ~ . -change_type - price_change - Year, data=hsd_train2, method="class")
