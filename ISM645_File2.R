@@ -9,6 +9,9 @@ library(reshape)
 library(yardstick)
 library(rpart)
 library(rpart.plot)
+library(cutpointr)
+library(caret)
+
 
 # Importing the raw data from xlsx file
 house_series_data <- read.xlsx("PA Data Merge.xlsx")
@@ -163,12 +166,17 @@ summary(log_price6)
 ##GOT A WEIRD ERROR, STILL REVIEWING 
 ##KC will work on this
 hsd_test2 <- hsd_test2 %>%
-  mutate(predict_change_type=predict(log_price6, newdata = hsd_test2, type = "response"))
+  mutate(predict_change_type = predict(log_price6, newdata = hsd_test2, type = "response"))
 
-roc <- roc(hsd_test2, x= predict_change_type, class = change_type, pos_class = 1, neg_class = 0)
+roc <- roc(hsd_test2, x= predict_change_type, class = change_type, pos_class = 1, neg_class = 0, silent = TRUE)
 
 plot(roc)
 auc(roc)
+
+plot(roc) + 
+  geom_line(data = roc, color = "red") +
+  geom_abline(slope = 1) +
+  labs(title = "ROC Curve for log_price6")
 
 ###### REGRESSION TREE MODEL ##########
 
