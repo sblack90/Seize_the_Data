@@ -133,16 +133,16 @@ hsd_3 <- hsd_2 %>%
 
 #Split data by year
 
-#Train on older data (2010-2020)
+#Train on older data (2010-2019)
 hsd_train2 <- hsd_3 %>% 
-  filter(Year<=2020)
+  filter(Year<=2019)
 
 str(hsd_train2)
 
-#Test on newer data (2021)
+#Test on newer data (2020-2021)
 hsd_test2 <- hsd_3 %>% 
-  filter(Year>2020) %>% 
-  drop
+  filter(Year>2019) %>% 
+  drop_na()
 
 str(hsd_test2)
 
@@ -173,7 +173,7 @@ summary(log_price6)
 hsd_test2 <- hsd_test2 %>%
   mutate(predict_change_type = predict(log_price6, newdata = hsd_test2, type = "response"))
 
-roc <- roc(hsd_test2, x= predict_change_type, class = change_type, pos_class = 1, neg_class = 0, silent = TRUE)
+roc <- roc(hsd_test2, x= predict_change_type, class = change_type, pos_class = 1, neg_class = 0)
 
 plot(roc)
 auc(roc)

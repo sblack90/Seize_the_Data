@@ -155,7 +155,7 @@ summary(SALES_TEST_DATA)
 
 ####### CREATE A FAKE HOUSE TO ESTIMATE SALES PRICE
 
-HOUSE <- data.frame(zip = 27410, bathrooms = 2.5, bedrooms = 3, area = 2000, yearBuilt = 1991) 
+HOUSE <- data.frame(zip = 27408, bathrooms = 3, bedrooms = 4, area = 2250, yearBuilt = 1956) 
 
 HOUSE_PREDICTIONS <- SALES_REGRESSION %>%
   predict(HOUSE)
