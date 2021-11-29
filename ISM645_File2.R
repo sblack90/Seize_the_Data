@@ -209,7 +209,44 @@ grade_dtree_over <- rpart(change_type  ~ . -change_type - price_change - Year, d
 rpart.plot(grade_dtree_over, cex=0.8)
 
 #Test Model
-##HERE
+## Model Evaluation for Classification
+
+# Predicting on new data with decision trees
+
+grade_dtree_prob <- grade_dtree_over %>% 
+  predict(newdata = hsd_test2, type = "prob")
+
+head(grade_dtree_prob)
+
+grade_dtree_class <- grade_dtree_over %>% 
+  predict(newdata = hsd_test2, type = "class")
+
+head(grade_dtree_class)
+
+table(grade_dtree_class)
+
+hsd_test2 <- hsd_test2 %>% 
+  mutate(.fitted = grade_dtree_prob[, 2]) %>% 
+  mutate(predicted_class = grade_dtree_class)
+
+
+# Confusion Matrix
+##FIX
+confusionMatrix(as.factor(hsd_test2$predicted_class), as.factor(hsd_test2$change_type), positive = "1")
+
+
+# ROC Curve and AUC
+
+
+roc <- roc(grade_test, x= .fitted, class = pass, pos_class = 1, neg_class = 0)
+
+plot(roc)
+auc(roc)
+
+plot(roc) + 
+  geom_line(data = roc, color = "red") + 
+  geom_abline(slope = 1) + 
+  labs(title = "ROC Curve for Classification Tree")
 
 ###### RANDOM FOREST MODEL ##########
 
