@@ -12,6 +12,8 @@ library(rpart.plot)
 library(cutpointr)
 library(caret)
 library(ROSE)
+library(randomForest)
+library(ROCR)
 
 set.seed(645)
 
@@ -139,7 +141,8 @@ str(hsd_train2)
 
 #Test on newer data (2021)
 hsd_test2 <- hsd_3 %>% 
-  filter(Year>2020)
+  filter(Year>2020) %>% 
+  drop
 
 str(hsd_test2)
 
@@ -237,16 +240,49 @@ confusionMatrix(as.factor(hsd_test2$predicted_class), as.factor(hsd_test2$change
 
 # ROC Curve and AUC
 
-
-roc <- roc(grade_test, x= .fitted, class = pass, pos_class = 1, neg_class = 0)
-
-plot(roc)
-auc(roc)
-
-plot(roc) + 
-  geom_line(data = roc, color = "red") + 
-  geom_abline(slope = 1) + 
-  labs(title = "ROC Curve for Classification Tree")
+# 
+# roc <- roc(grade_test, x= .fitted, class = pass, pos_class = 1, neg_class = 0)
+# 
+# plot(roc)
+# auc(roc)
+# 
+# plot(roc) + 
+#   geom_line(data = roc, color = "red") + 
+#   geom_abline(slope = 1) + 
+#   labs(title = "ROC Curve for Classification Tree")
 
 ###### RANDOM FOREST MODEL ##########
+price_randomForest <-  randomForest(as.factor(change_type) ~ . -price_change - Year , data = hsd_train2, ntree = 1000, importance=TRUE)
+print(price_randomForest)
+plot(price_randomForest)
+importance(price_randomForest)
+varImpPlot(price_randomForest)
 
+pred1=predict(price_randomForest,type = "prob")
+perf = prediction(pred1[,2], hsd_train2$change_type)
+
+auc = performance(perf, "auc")
+auc
+
+pred3 = performance(perf, "tpr","fpr")
+
+plot(pred3,main="ROC Curve for Random Forest",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=2,col="gray")
+## Refining the Random forest Model based on importance Variables
+
+price_randomForest_refine <-  randomForest(as.factor(change_type) ~ . -BitCoin -Unemployment-Mort_30_Year - Crime-Population-GDP_Billions -price_change - Year , data = hsd_train2, ntree = 1000, importance=TRUE)
+print(price_randomForest_refine)
+plot(price_randomForest_refine)
+importance(price_randomForest_refine)
+varImpPlot(price_randomForest_refine)
+
+pred2=predict(price_randomForest_refine,type = "prob")
+perf2 = prediction(pred2[,2], hsd_train2$change_type)
+
+auc2 = performance(perf2, "auc")
+auc2
+
+pred4 = performance(perf2, "tpr","fpr")
+
+plot(pred4,main="ROC Curve for Random Forest",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=2,col="gray")
