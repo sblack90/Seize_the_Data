@@ -5,6 +5,12 @@ library(ggplot2)
 library(tidyr)
 library(openxlsx)
 library(reshape)
+library(gbm)
+library(randomForest)
+library(rpart)
+library(rpart.plot)
+library(cutpointr)
+library(yardstick)
 
 
 # Importing the raw data from csv file
@@ -71,6 +77,7 @@ SALES2 <- SALES %>%
   filter(area > 0) %>%
   filter(zip %notin% c("27217","27249","27263","27265","27284","27313","27317","27357","27377","27411"))
 
+str(SALES2)
 
 ###### REPLOTTING THE DATA
 
@@ -136,32 +143,70 @@ SALES_TEST_DATA <-head(SALES3, as.integer(ceiling(ROWCOUNT/4)))
 
 SALES_TRAIN_DATA <-tail(SALES3, as.integer(ROWCOUNT) - as.integer(ceiling(ROWCOUNT/4))) 
 
+
+
 ####### CREATING A SIMPLE LINEAR REGRESSION MODEL WITH ALL VARIABLES OF THE MODEL DATA 
 
 SALES_REGRESSION <- lm(price ~  bathrooms + area + yearBuilt + as.factor(bedrooms) + as.factor(zip), data = SALES_TRAIN_DATA)
+
 summary(SALES_REGRESSION)
 
-###### Running the Test data through the regression model and compare forecast to actual price
-PREDICTIONS <- SALES_REGRESSION %>%
-  predict(SALES_TEST_DATA)
+predicted_linear_regression <- SALES_REGRESSION %>%
+  predict(newdata = SALES_TEST_DATA)
+
+
+##### CREATING A GRADIENT BOOSTING MODEL #######
+
+SALES_GRADIENT_BOOST <- gbm(price ~  bathrooms + area + yearBuilt + as.factor(bedrooms) + as.factor(zip), data = SALES_TRAIN_DATA, distribution = "gaussian", n.trees = 1000)
+
+summary(SALES_GRADIENT_BOOST)
+
+predicted_grad_boost <- SALES_GRADIENT_BOOST %>%
+  predict(newdata = SALES_TEST_DATA,  n.trees = 1000)
+
+
+##### CREATING A RANDOM FOREST MODEL ########
+
+SALES_RANDOM_FOREST <- randomForest(price ~  bathrooms + area + yearBuilt + bedrooms + zip, data = SALES_TRAIN_DATA, ntree = 1000, importance = TRUE)
+
+plot(SALES_RANDOM_FOREST)
+varImpPlot(SALES_RANDOM_FOREST)
+
+predicted_random_forest <- SALES_RANDOM_FOREST %>%
+  predict(newdata = SALES_TEST_DATA)
+
+
+###### CREATING A DECISION TREE MODEL #######
+
+SALES_RTREE <- rpart(price ~  bathrooms + area + yearBuilt + as.factor(bedrooms) + as.factor(zip), data = SALES_TRAIN_DATA, method = "anova")
+
+summary(SALES_RTREE)
+plot(SALES_RTREE)
+
+predicted_rtee <- SALES_RTREE %>%
+  predict(newdata = SALES_TEST_DATA)
+
+###### Running the Test data agianst all four models to compare forecast to actual price
 
 SALES_TEST_DATA <- SALES_TEST_DATA %>%
-  mutate(model_forecast = PREDICTIONS)%>%
-  mutate(error = abs(model_forecast-price)) %>%
-  mutate(error_percent = error/price) 
+  mutate(liner_regresion = predicted_linear_regression) %>%
+  mutate(gradient_boosting = predicted_grad_boost) %>%
+  mutate(random_forest = predicted_random_forest) %>%
+  mutate(regression_tree = predicted_rtee) 
 
-summary(SALES_TEST_DATA)
 
+#### RMSE of all four models #####
 
-####### CREATE A FAKE HOUSE TO ESTIMATE SALES PRICE
+SALES_TEST_DATA %>%
+  rmse(liner_regresion, price)
 
-HOUSE <- data.frame(zip = 27408, bathrooms = 3, bedrooms = 4, area = 2250, yearBuilt = 1956) 
+SALES_TEST_DATA %>%
+  rmse(gradient_boosting, price)
 
-HOUSE_PREDICTIONS <- SALES_REGRESSION %>%
-  predict(HOUSE)
+SALES_TEST_DATA %>%
+  rmse(random_forest, price)
 
-HOUSE <- HOUSE %>%
-  mutate(price = HOUSE_PREDICTIONS)
+SALES_TEST_DATA %>%
+  rmse(regression_tree, price)
 
-HOUSE
-
+head(SALES_TEST_DATA)
