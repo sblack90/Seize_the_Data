@@ -209,30 +209,40 @@ table(change_train_over$change_type)
 price_ctree_over <- rpart(change_type  ~ . -change_type - price_change - Year, data=change_train_over, method="class")
 rpart.plot(price_ctree, cex=0.8)
 
-predicted_rtree <- price_ctree_over %>%
-  predict(newdata = hsd_test2)
+predicted_ctree <- price_ctree %>% 
+  predict(newdata =hsd_test2, type = "prob")
 
-# Optimal cp
+predicted_ctree_over <- price_ctree_over %>% 
+  predict(newdata=hsd_test2, type = "prob")
 
+head(predicted_ctree)
+head(predicted_ctree_over)
 
-
-
-
-
-##SARAH COMMENT - ADD HERE
+hsd_test2 <- hsd_test2 %>%  
+  mutate(predicted_prob_ctree = predicted_ctree[, 2]) %>% 
+  mutate(predicted_prob_ctree_over = predicted_ctree_over[, 2])
 
 # ROC Curve and AUC
+roc_ctree <- roc(hsd_test2, x = predicted_prob_ctree, class = change_type, 
+                 pos_class = 1, neg_class = 0, direction = ">=")
 
+roc_ctree_over<- roc(hsd_test2, x = predicted_prob_ctree_over, class = change_type, 
+                     pos_class = 1, neg_class = 0, direction = ">=")
  
- roc2 <- roc(grade_test, x= .fitted, class = change_type, pos_class = 1, neg_class = 0)
  
- plot(roc2)
- auc(roc2)
- 
- plot(roc2) + 
-   geom_line(data = roc, color = "red") + 
-   geom_abline(slope = 1) + 
-   labs(title = "ROC Curve for Classification Tree")
+plot(roc_ctree) + 
+  geom_line(data = roc_ctree, color = "red") +
+  geom_abline(slope = 1) +
+  labs(title = "ROC Curve for Classification Tree Home Price Forecast Model")
+
+plot(roc_ctree_over) + 
+  geom_line(data = roc_ctree_over, color = "red") +
+  geom_abline(slope = 1) +
+  labs(title = "ROC Curve for Oversample Classification Tree Home Price Forecast Model")
+
+
+auc(roc_ctree)
+auc(roc_ctree_over)
 
 ###### RANDOM FOREST MODEL ##########
 price_randomForest <-  randomForest(as.factor(change_type) ~ . -price_change - Year , data = hsd_train2, ntree = 1000, importance=TRUE)
@@ -269,3 +279,4 @@ pred4 = performance(perf2, "tpr","fpr")
 
 plot(pred4,main="ROC Curve for Random Forest",col=2,lwd=2)
 abline(a=0,b=1,lwd=2,lty=2,col="gray")
+
