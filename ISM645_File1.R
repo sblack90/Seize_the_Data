@@ -181,7 +181,8 @@ predicted_random_forest <- SALES_RANDOM_FOREST %>%
 SALES_RTREE <- rpart(price ~  bathrooms + area + yearBuilt + as.factor(bedrooms) + as.factor(zip), data = SALES_TRAIN_DATA, method = "anova")
 
 summary(SALES_RTREE)
-plot(SALES_RTREE)
+
+rpart.plot(SALES_RTREE)
 
 predicted_rtee <- SALES_RTREE %>%
   predict(newdata = SALES_TEST_DATA)
@@ -210,3 +211,43 @@ SALES_TEST_DATA %>%
   rmse(regression_tree, price)
 
 head(SALES_TEST_DATA)
+
+
+##### Plotting the actual price against the predicted price
+
+ggplot(data = SALES_TEST_DATA, aes(x = liner_regresion , y = price))+
+  geom_point()+
+  labs(title = "Actual Price vs Linear Regression Predicted Price (Sieze the Data)", 
+       y = "Actual Price", 
+       x = "Linear Regression Predicted Price",
+       xlim = 0, ylim = 0)+
+  geom_abline(data = NULL, slope = 1, intercept = 0, color = "red")
+
+ggplot(data = SALES_TEST_DATA, aes(x = gradient_boosting , y = price))+
+  geom_point()+
+  labs(title = "Actual Price vs Gradient Boosting Predicted Price (Sieze the Data)", 
+       y = "Actual Price", 
+       x = "Gradient Boosting Predicted Price",
+       xlim = 0, ylim = 0)+
+  geom_abline(data = NULL, slope = 1, intercept = 0, color = "red")
+
+ggplot(data = SALES_TEST_DATA, aes(x = random_forest , y = price))+
+  geom_point()+
+  labs(title = "Actual Price vs Random Forest Predicted Price (Sieze the Data)", 
+       y = "Actual Price", 
+       x = "Random Forest Predicted Price",
+       xlim = 0, ylim = 0)+
+  geom_abline(data = NULL, slope = 1, intercept = 0, color = "red")
+
+ggplot(data = SALES_TEST_DATA, aes(x = regression_tree , y = price))+
+  geom_point()+
+  labs(title = "Actual Price vs Classification Tree Predicted Price (Sieze the Data)", 
+       y = "Actual Price", 
+       x = "Classification Tree Predicted Price",
+       xlim = 0, ylim = 0)+
+  geom_abline(data = NULL, slope = 1, intercept = 0, color = "red")
+
+
+
+
+
