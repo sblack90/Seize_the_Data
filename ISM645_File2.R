@@ -81,13 +81,13 @@ summary(hsd_2)
 
 #Train on older data (2010-2020)
 hsd_train <- hsd_2 %>% 
-  filter(Year<=2020)
+  filter(Year<=2019)
 
 str(hsd_train)
 
 #Test newer data (2021)
 hsd_test <- hsd_2 %>% 
-  filter(Year>2020)
+  filter(Year>2019)
 
 str(hsd_test)
 
@@ -98,25 +98,25 @@ price_prediction1 <- lm(price_change ~ . - price_change - Year, data = hsd_train
 summary(price_prediction1)
 
 #Remove least significant variables
-price_prediction2 <- lm(price_change ~ . -GDP_Billions - price_change - Year, data = hsd_train)
+price_prediction2 <- lm(price_change ~ . -BitCoin - price_change - Year, data = hsd_train)
 summary(price_prediction2)
 
-price_prediction3 <- lm(price_change ~ . -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
+price_prediction3 <- lm(price_change ~ . -Nasdaq -BitCoin - price_change - Year, data = hsd_train)
 summary(price_prediction3)
 
-price_prediction4 <- lm(price_change ~ .  -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
+price_prediction4 <- lm(price_change ~ .  -Crime -Nasdaq -BitCoin - price_change - Year, data = hsd_train)
 summary(price_prediction4)
 
-price_prediction5 <- lm(price_change ~ .  -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
+price_prediction5 <- lm(price_change ~ .  -Unemployment -Crime -Nasdaq -BitCoin  - price_change - Year, data = hsd_train)
 summary(price_prediction5)
 
-price_prediction6 <- lm(price_change ~ .  -Nasdaq -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
+price_prediction6 <- lm(price_change ~ .  -CPI -Unemployment -Crime -Nasdaq -BitCoin  - price_change - Year, data = hsd_train)
 summary(price_prediction6)
 
 price_prediction7 <- lm(price_change ~ .  -Crime -Nasdaq -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
 summary(price_prediction7)
 
-price_prediction8 <- lm(price_change ~ .  -CPI -Crime -Nasdaq -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
+price_prediction8 <- lm(price_change ~ .  -Dow -Crime -Nasdaq -Dow -BitCoin -Unemployment -GDP_Billions - price_change - Year, data = hsd_train)
 summary(price_prediction8)
 
 #Test Model
@@ -129,7 +129,7 @@ rmse(price_pred_test, price_change, predicted_price_lin)
 
 #Create Binary Variable (1 for increase in price, 0 for decrease)
 hsd_3 <- hsd_2 %>% 
-  mutate(change_type=if_else(price_change>=0, 1, 0))
+  mutate(change_type=if_else(price_change>=.25, 1, 0))
 
 #Split data by year
 
@@ -151,29 +151,31 @@ str(hsd_test2)
 log_price1 <- glm(change_type ~ . -change_type - price_change - Year, data=hsd_train2)
 summary(log_price1)
 
-log_price2 <- glm(change_type ~ . -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price2 <- glm(change_type ~ . -BitCoin -change_type - price_change - Year, data=hsd_train2)
 summary(log_price2)
 
-log_price3 <- glm(change_type ~ . -BitCoin -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price3 <- glm(change_type ~ . -Dow -BitCoin  -change_type - price_change - Year, data=hsd_train2)
 summary(log_price3)
 
-log_price4 <- glm(change_type ~ . -CPI -BitCoin -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price4 <- glm(change_type ~ . -Crime -Dow -BitCoin -change_type - price_change - Year, data=hsd_train2)
 summary(log_price4)
 
-log_price5 <- glm(change_type ~ . -Dow -CPI -BitCoin -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price5 <- glm(change_type ~ . -Unemployment -Crime -Dow -BitCoin -change_type - price_change - Year, data=hsd_train2)
 summary(log_price5)
 
-log_price6 <- glm(change_type ~ . -Nasdaq -Dow -CPI -BitCoin -Crime -change_type - price_change - Year, data=hsd_train2)
+log_price6 <- glm(change_type ~ . -CPI -Unemployment -Crime -Dow -BitCoin -change_type - price_change - Year, data=hsd_train2)
 summary(log_price6)
 
+log_price7 <- glm(change_type ~ . -Nasdaq -CPI -Unemployment -Crime -Dow -BitCoin -change_type - price_change - Year, data=hsd_train2)
+summary(log_price7)
 
 #Test Model
 ##GOT A WEIRD ERROR, STILL REVIEWING 
 ##KC will work on this
 hsd_test2 <- hsd_test2 %>%
-  mutate(predict_change_type = predict(log_price6, newdata = hsd_test2, type = "response"))
+  mutate(predict_change_type = predict(log_price7, newdata = hsd_test2, type = "response"))
 
-roc <- roc(hsd_test2, x= predict_change_type, class = change_type, pos_class = 1, neg_class = 0)
+roc <- roc(hsd_test2, x= predict_change_type, class = change_type, pos_class = 0, neg_class = 1)
 
 plot(roc)
 auc(roc)
@@ -181,7 +183,7 @@ auc(roc)
 plot(roc) + 
   geom_line(data = roc, color = "red") +
   geom_abline(slope = 1) +
-  labs(title = "ROC Curve for log_price6")
+  labs(title = "ROC Curve for Logistic Regression Home Price Forecast Model")
 
 ###### REGRESSION TREE MODEL ##########
 
