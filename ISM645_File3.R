@@ -17,5 +17,12 @@ HOUSE
 ##From File2
 ##price_prediction7 is the linear regression on change in price
 
+macro_var <- data.frame(Year=2021, GDP_Billions=23187.042, Population=537174, Mort_30_Year=3.487)
 
+forecast_prediction <- log_price7 %>% 
+  predict(macro_var)
 
+macro_var <- macro_var %>% 
+  mutate(change_type = forecast_prediction)
+
+macro_var
