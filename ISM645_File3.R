@@ -15,9 +15,12 @@ HOUSE
 
 
 ##From File2
-##price_prediction7 is the linear regression on change in price
+##test using log reg. Note that it was weird if I didn't put all var in (even though prediction is only on the first line)
+#So I was lazy and set them to zero rather than research the ones that aren't independent vars
 
-macro_var <- data.frame(Year=2021, GDP_Billions=23187.042, Population=537174, Mort_30_Year=3.487)
+macro_var <- data.frame(GDP_Billions=23187.042, Population=537174, Mort_30_Year=3.487,
+                         Year=2021, Month="December", CPI=0, BitCoin=0, Unemployment=0, Crime=0, Nasdaq=0, Dow=0,
+                        price_change=0)
 
 forecast_prediction <- log_price7 %>% 
   predict(macro_var)
