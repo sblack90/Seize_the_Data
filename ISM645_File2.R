@@ -170,8 +170,7 @@ log_price7 <- glm(change_type ~ . -Nasdaq -CPI -Unemployment -Crime -Dow -BitCoi
 summary(log_price7)
 
 #Test Model
-##GOT A WEIRD ERROR, STILL REVIEWING 
-##KC will work on this
+##FIXED ERROR BY CHANGING THE CUT OFF FOR THE BINARY VARIABLE
 hsd_test2 <- hsd_test2 %>%
   mutate(predict_change_type = predict(log_price7, newdata = hsd_test2, type = "response"))
 
@@ -185,73 +184,55 @@ plot(roc) +
   geom_abline(slope = 1) +
   labs(title = "ROC Curve for Logistic Regression Home Price Forecast Model")
 
-###### REGRESSION TREE MODEL ##########
-
-#Regression Tree
-price_rtree <- rpart(price_change  ~ .  - price_change - Year, data=hsd_train, method="anova")
-rpart.plot(price_rtree, cex=0.8)
+# ###### REGRESSION TREE MODEL ##########
+# 
+###SARAH COMMENT - I DON'T THINK A REGRESSION TREE MODEL QUITE WORKS HERE AND I COMMENTED IT OUT
 
 
-
-#Test Model
-##HERE
+# #Regression Tree
+# price_rtree <- rpart(price_change  ~ .  - price_change - Year, data=hsd_train, method="anova")
+# rpart.plot(price_rtree, cex=0.8)
+# 
+# 
+# 
+# #Test Model
+# ##HERE
 
 
 #Classification Tree
 price_ctree <- rpart(change_type  ~ . -change_type - price_change - Year, data=hsd_train2, method="class")
 rpart.plot(price_ctree, cex=0.8)
 
-#Prune
-##SARAH HERE
-hsd_train_over <- ovun.sample(change_type  ~ ., data = hsd_train2, method="over", p = 0.5)$data
+change_train_over <-ovun.sample(change_type ~ . -price_change - change_type - Year, data=hsd_train2, method="over", p=0.5)$data
+table(change_train_over$change_type)
 
-table(hsd_train2$change_type)
-table(hsd_train_over$change_type)
+price_ctree_over <- rpart(change_type  ~ . -change_type - price_change - Year, data=change_train_over, method="class")
+rpart.plot(price_ctree, cex=0.8)
 
+predicted_rtree <- price_ctree_over %>%
+  predict(newdata = hsd_test2)
 
-grade_dtree_over <- rpart(change_type  ~ . -change_type - price_change - Year, data = hsd_train_over, method = "class")
-
-rpart.plot(grade_dtree_over, cex=0.8)
-
-#Test Model
-## Model Evaluation for Classification
-
-# Predicting on new data with decision trees
-
-grade_dtree_prob <- grade_dtree_over %>% 
-  predict(newdata = hsd_test2, type = "prob")
-
-head(grade_dtree_prob)
-
-grade_dtree_class <- grade_dtree_over %>% 
-  predict(newdata = hsd_test2, type = "class")
-
-head(grade_dtree_class)
-
-table(grade_dtree_class)
-
-hsd_test2 <- hsd_test2 %>% 
-  mutate(.fitted = grade_dtree_prob[, 2]) %>% 
-  mutate(predicted_class = grade_dtree_class)
+# Optimal cp
 
 
-# Confusion Matrix
-##FIX
-confusionMatrix(as.factor(hsd_test2$predicted_class), as.factor(hsd_test2$change_type), positive = "1")
 
+
+
+
+##SARAH COMMENT - ADD HERE
 
 # ROC Curve and AUC
 
-# 
-# roc <- roc(grade_test, x= .fitted, class = pass, pos_class = 1, neg_class = 0)
-# 
-# plot(roc)
-# auc(roc)
-# 
-# plot(roc) + 
-#   geom_line(data = roc, color = "red") + 
-#   geom_abline(slope = 1) + 
-#   labs(title = "ROC Curve for Classification Tree")
+ 
+ roc2 <- roc(grade_test, x= .fitted, class = change_type, pos_class = 1, neg_class = 0)
+ 
+ plot(roc2)
+ auc(roc2)
+ 
+ plot(roc2) + 
+   geom_line(data = roc, color = "red") + 
+   geom_abline(slope = 1) + 
+   labs(title = "ROC Curve for Classification Tree")
 
 ###### RANDOM FOREST MODEL ##########
 price_randomForest <-  randomForest(as.factor(change_type) ~ . -price_change - Year , data = hsd_train2, ntree = 1000, importance=TRUE)
