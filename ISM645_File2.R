@@ -170,16 +170,40 @@ log_price7 <- glm(change_type ~ . -Nasdaq -CPI -Unemployment -Crime -Dow -BitCoi
 summary(log_price7)
 
 #Test Model
-##FIXED ERROR BY CHANGING THE CUT OFF FOR THE BINARY VARIABLE
 hsd_test2 <- hsd_test2 %>%
-  mutate(predict_change_type = predict(log_price7, newdata = hsd_test2, type = "response"))
+  mutate(predict_change_type1 = predict(log_price1, newdata = hsd_test2, type = "response")) %>% 
+  mutate(predict_change_type2 = predict(log_price2, newdata = hsd_test2, type = "response")) %>% 
+  mutate(predict_change_type3 = predict(log_price3, newdata = hsd_test2, type = "response")) %>% 
+  mutate(predict_change_type4 = predict(log_price4, newdata = hsd_test2, type = "response")) %>% 
+  mutate(predict_change_type5 = predict(log_price5, newdata = hsd_test2, type = "response")) %>% 
+  mutate(predict_change_type6 = predict(log_price6, newdata = hsd_test2, type = "response")) %>% 
+  mutate(predict_change_type7 = predict(log_price7, newdata = hsd_test2, type = "response"))
 
-roc <- roc(hsd_test2, x= predict_change_type, class = change_type, pos_class = 0, neg_class = 1)
+roc1 <- roc(hsd_test2, x= predict_change_type1, class = change_type, pos_class = 0, neg_class = 1)
+roc2 <- roc(hsd_test2, x= predict_change_type2, class = change_type, pos_class = 0, neg_class = 1)
+roc3 <- roc(hsd_test2, x= predict_change_type3, class = change_type, pos_class = 0, neg_class = 1)
+roc4 <- roc(hsd_test2, x= predict_change_type4, class = change_type, pos_class = 0, neg_class = 1)
+roc5 <- roc(hsd_test2, x= predict_change_type5, class = change_type, pos_class = 0, neg_class = 1)
+roc6 <- roc(hsd_test2, x= predict_change_type6, class = change_type, pos_class = 0, neg_class = 1)
+roc7 <- roc(hsd_test2, x= predict_change_type7, class = change_type, pos_class = 0, neg_class = 1)
 
-plot(roc)
-auc(roc)
+auc(roc1)
+auc(roc2)
+auc(roc3)
+auc(roc4)
+auc(roc5)
+auc(roc6)
+auc(roc7)
 
-plot(roc) + 
+plot(roc1)
+plot(roc2)
+plot(roc3)
+plot(roc4)
+plot(roc5)
+plot(roc6)
+plot(roc7)
+
+plot(roc1) + 
   geom_line(data = roc, color = "red") +
   geom_abline(slope = 1) +
   labs(title = "ROC Curve for Logistic Regression Home Price Forecast Model")
