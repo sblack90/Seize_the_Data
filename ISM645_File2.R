@@ -87,9 +87,11 @@ str(hsd_train)
 
 #Test newer data (2021)
 hsd_test <- hsd_2 %>% 
-  filter(Year>2019)
+  filter(Year>2019) %>% 
+  drop_na()
 
 str(hsd_test)
+
 
 #Build Linear Regression Model
 #Use Backwards Variable Selection by starting with all variables
@@ -129,7 +131,8 @@ rmse(price_pred_test, price_change, predicted_price_lin)
 
 #Create Binary Variable (1 for increase in price, 0 for decrease)
 hsd_3 <- hsd_2 %>% 
-  mutate(change_type=if_else(price_change>=.25, 1, 0))
+#  mutate(change_type=if_else(price_change>=.7, 1, 0)) 
+  mutate(change_type=if_else(price_change>=.25, 1, 0)) 
 
 #Split data by year
 
@@ -151,22 +154,22 @@ str(hsd_test2)
 log_price1 <- glm(change_type ~ . -change_type - price_change - Year, data=hsd_train2)
 summary(log_price1)
 
-log_price2 <- glm(change_type ~ . -BitCoin -change_type - price_change - Year, data=hsd_train2)
+log_price2 <- glm(change_type ~ . -Nasdaq -change_type - price_change - Year, data=hsd_train2)
 summary(log_price2)
 
-log_price3 <- glm(change_type ~ . -Dow -BitCoin  -change_type - price_change - Year, data=hsd_train2)
+log_price3 <- glm(change_type ~ . -CPI -Nasdaq  -change_type - price_change - Year, data=hsd_train2)
 summary(log_price3)
 
-log_price4 <- glm(change_type ~ . -Crime -Dow -BitCoin -change_type - price_change - Year, data=hsd_train2)
+log_price4 <- glm(change_type ~ . -Mort_30_Year -CPI -Nasdaq -change_type - price_change - Year, data=hsd_train2)
 summary(log_price4)
 
-log_price5 <- glm(change_type ~ . -Unemployment -Crime -Dow -BitCoin -change_type - price_change - Year, data=hsd_train2)
+log_price5 <- glm(change_type ~ . -Unemployment -Mort_30_Year -CPI -Nasdaq -change_type - price_change - Year, data=hsd_train2)
 summary(log_price5)
 
-log_price6 <- glm(change_type ~ . -CPI -Unemployment -Crime -Dow -BitCoin -change_type - price_change - Year, data=hsd_train2)
+log_price6 <- glm(change_type ~ . -Dow -Unemployment -Mort_30_Year -CPI -Nasdaq -change_type - price_change - Year, data=hsd_train2)
 summary(log_price6)
 
-log_price7 <- glm(change_type ~ . -Nasdaq -CPI -Unemployment -Crime -Dow -BitCoin -change_type - price_change - Year, data=hsd_train2)
+log_price7 <- glm(change_type ~ . -BitCoin -Dow -Unemployment -Mort_30_Year -CPI -Nasdaq -change_type - price_change - Year, data=hsd_train2)
 summary(log_price7)
 
 #Test Model
@@ -203,8 +206,8 @@ plot(roc5)
 plot(roc6)
 plot(roc7)
 
-plot(roc1) + 
-  geom_line(data = roc, color = "red") +
+plot(roc6) + 
+  geom_line(data = roc6, color = "red") +
   geom_abline(slope = 1) +
   labs(title = "ROC Curve for Logistic Regression Home Price Forecast Model")
 
@@ -269,6 +272,10 @@ auc(roc_ctree)
 auc(roc_ctree_over)
 
 ###### RANDOM FOREST MODEL ##########
+
+#I Kind of broke it trying to fix the the log regression and 
+#changing the change_type threshold. Toggle line 134/135 to get to work
+
 price_randomForest <-  randomForest(as.factor(change_type) ~ . -price_change - Year , data = hsd_train2, ntree = 1000, importance=TRUE)
 print(price_randomForest)
 plot(price_randomForest)
@@ -278,7 +285,7 @@ varImpPlot(price_randomForest)
 pred1=predict(price_randomForest,type = "prob")
 perf = prediction(pred1[,2], hsd_train2$change_type)
 
-auc = performance(perf, "auc")
+auc = performance(perf, measure="auc")@y.values[[1]]
 auc
 
 pred3 = performance(perf, "tpr","fpr")
@@ -296,7 +303,7 @@ varImpPlot(price_randomForest_refine)
 pred2=predict(price_randomForest_refine,type = "prob")
 perf2 = prediction(pred2[,2], hsd_train2$change_type)
 
-auc2 = performance(perf2, "auc")
+auc2 = performance(perf2, measure="auc")@y.values[[1]]
 auc2
 
 pred4 = performance(perf2, "tpr","fpr")
