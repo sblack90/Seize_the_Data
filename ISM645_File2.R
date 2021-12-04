@@ -147,7 +147,7 @@ hsd_test2 <- hsd_3 %>%
 str(hsd_test2)
 
 #Build Logistic Regression Model
-#Use Backwards Variable Selection by starting with all variables
+#Use Backwards Variable Selection by starting with all variables and then comparing all to ROC
 log_price1 <- glm(change_type ~ . -change_type - price_change - Year, data=hsd_train2)
 summary(log_price1)
 
